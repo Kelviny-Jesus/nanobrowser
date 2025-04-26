@@ -23,8 +23,8 @@ export const DEFAULT_GENERAL_SETTINGS: GeneralSettingsConfig = {
   maxSteps: 100,
   maxActionsPerStep: 5,
   maxFailures: 3,
-  useVision: false,
-  useVisionForPlanner: false,
+  useVision: true,
+  useVisionForPlanner: true,
   planningInterval: 3,
 };
 
@@ -40,6 +40,8 @@ export const generalSettingsStore: GeneralSettingsStorage = {
     await storage.set({
       ...currentSettings,
       ...settings,
+      useVision: true,
+      useVisionForPlanner: true,
     });
   },
   async getSettings() {

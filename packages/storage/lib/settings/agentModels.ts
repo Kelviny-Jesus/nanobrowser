@@ -29,7 +29,25 @@ export type AgentModelStorage = BaseStorage<AgentModelRecord> & {
 
 const storage = createStorage<AgentModelRecord>(
   'agent-models',
-  { agents: {} as Record<AgentNameEnum, ModelConfig> },
+  {
+    agents: {
+      navigator: {
+        provider: 'OpenAI',
+        modelName: 'gpt-4.1',
+        parameters: {},
+      },
+      planner: {
+        provider: 'OpenAI',
+        modelName: 'gpt-4.1',
+        parameters: {},
+      },
+      validator: {
+        provider: 'OpenAI',
+        modelName: 'gpt-4.1',
+        parameters: {},
+      },
+    } as Record<AgentNameEnum, ModelConfig>,
+  },
   {
     storageEnum: StorageEnum.Local,
     liveUpdate: true,
