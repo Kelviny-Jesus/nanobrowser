@@ -619,50 +619,24 @@ const SidePanel = () => {
           </div>
         ) : (
           <>
-            {messages.length === 0 && (
-              <>
-                <div
-                  className={`border-t ${isDarkMode ? 'border-sky-900' : 'border-sky-100'} mb-2 p-2 shadow-sm backdrop-blur-sm`}>
-                  <ChatInput
-                    onSendMessage={handleSendMessage}
-                    onStopTask={handleStopTask}
-                    disabled={!inputEnabled || isHistoricalSession}
-                    showStopButton={showStopButton}
-                    setContent={setter => {
-                      setInputTextRef.current = setter;
-                    }}
-                    isDarkMode={isDarkMode}
-                  />
-                </div>
-                <div>
-                  <TemplateList
-                    templates={defaultTemplates}
-                    onTemplateSelect={handleTemplateSelect}
-                    isDarkMode={isDarkMode}
-                  />
-                </div>
-              </>
-            )}
             <div
               className={`scrollbar-gutter-stable flex-1 overflow-x-hidden overflow-y-scroll scroll-smooth p-2 ${isDarkMode ? 'bg-slate-900/80' : ''}`}>
               <MessageList messages={messages} isDarkMode={isDarkMode} />
               <div ref={messagesEndRef} />
             </div>
-            {messages.length > 0 && (
-              <div
-                className={`border-t ${isDarkMode ? 'border-sky-900' : 'border-sky-100'} p-2 shadow-sm backdrop-blur-sm`}>
-                <ChatInput
-                  onSendMessage={handleSendMessage}
-                  onStopTask={handleStopTask}
-                  disabled={!inputEnabled || isHistoricalSession}
-                  showStopButton={showStopButton}
-                  setContent={setter => {
-                    setInputTextRef.current = setter;
-                  }}
-                  isDarkMode={isDarkMode}
-                />
-              </div>
-            )}
+            <div
+              className={`border-t ${isDarkMode ? 'border-sky-900' : 'border-sky-100'} p-2 shadow-sm backdrop-blur-sm`}>
+              <ChatInput
+                onSendMessage={handleSendMessage}
+                onStopTask={handleStopTask}
+                disabled={!inputEnabled || isHistoricalSession}
+                showStopButton={showStopButton}
+                setContent={setter => {
+                  setInputTextRef.current = setter;
+                }}
+                isDarkMode={isDarkMode}
+              />
+            </div>
           </>
         )}
       </div>
