@@ -74,10 +74,140 @@ chrome.tabs.onRemoved.addListener(tabId => {
 
 logger.info('background loaded');
 
-// Listen for simple messages (e.g., from options page)
+/**
+ * Listen for simple messages (e.g., from options page or side panel screenshot)
+ */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message && message.type === 'open_side_panel') {
+    chrome.windows.getCurrent(win => {
+      if (win && typeof win.id === 'number' && chrome.sidePanel && chrome.sidePanel.open) {
+        chrome.sidePanel.open({ windowId: win.id }).catch(() => {
+          chrome.runtime.openOptionsPage();
+        });
+      } else {
+        chrome.runtime.openOptionsPage();
+      }
+    });
+    return;
+  }
+  if (message && message.type === 'close_side_panel') {
+    chrome.windows.getCurrent(win => {
+      if (win && typeof win.id === 'number' && chrome.sidePanel && chrome.sidePanel.close) {
+        chrome.sidePanel.close({ windowId: win.id }).catch(() => {});
+      }
+      if (typeof sendResponse === 'function') sendResponse();
+    });
+    return true;
+  }
+  if (message && message.type === 'take_screenshot' && message.tabId) {
+    chrome.tabs.get(message.tabId, tab => {
+      if (chrome.runtime.lastError || !tab || typeof tab.windowId !== 'number') {
+        sendResponse({ dataUrl: null });
+        return;
+      }
+      chrome.tabs.captureVisibleTab(tab.windowId, { format: 'png' }, dataUrl => {
+        sendResponse({ dataUrl });
+      });
+    });
+    return true;
+  }
+  if (message && message.type === 'take_screenshot_full') {
+    // Captura a tela inteira da janela atual
+    chrome.windows.getCurrent(win => {
+      if (!win || typeof win.id !== 'number') {
+        sendResponse({ dataUrl: null });
+        return;
+      }
+      chrome.tabs.captureVisibleTab(win.id, { format: 'png' }, dataUrl => {
+        sendResponse({ dataUrl });
+      });
+    });
+    return true;
+  }
+  if (message && message.type === 'cropped_screenshot' && message.dataUrl) {
+    // Repassa para o side panel/chat (via port se disponível)
+    if (typeof globalThis.currentPort === 'object' && globalThis.currentPort?.postMessage) {
+      globalThis.currentPort.postMessage({
+        type: 'cropped_screenshot',
+        dataUrl: message.dataUrl,
+        timestamp: Date.now(),
+      });
+    }
+    return;
+  }
+  if (message && message.type === 'summarize_page') {
+    chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+      const tab = tabs.find(t => t.url && /^https?:\/\//.test(t.url));
+      if (tab && typeof globalThis.currentPort === 'object' && globalThis.currentPort?.postMessage) {
+        globalThis.currentPort.postMessage({
+          type: 'summarize_page',
+          url: tab.url,
+          title: tab.title,
+        });
+      }
+    });
+    return;
+  }
+  if (message && message.type === 'quick_action_task') {
+    // Faz requisição direta à OpenAI (gpt-4.1) e retorna resposta ao content script
+    const apiKey = 'api_here';
+    const prompt = message.prompt;
+    console.log('[quick_action_task] recebida:', prompt);
+    chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+      const tab = tabs.find(t => t.url && /^https?:\/\//.test(t.url));
+      const tabId = tab?.id;
+      console.log('[quick_action_task] tabId:', tabId);
+      fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4.1',
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 512,
+          temperature: 0.2,
+        }),
+      })
+        .then(res => {
+          console.log('[quick_action_task] fetch status:', res.status);
+          return res.json();
+        })
+        .then(data => {
+          console.log('[quick_action_task] resposta OpenAI:', data);
+          const content = data.choices?.[0]?.message?.content || 'Erro ao obter resposta do modelo.';
+          if (tabId) {
+            chrome.tabs.sendMessage(
+              tabId,
+              {
+                type: 'quick_action_response',
+                content,
+              },
+              resp => {
+                if (chrome.runtime.lastError) {
+                  console.error(
+                    '[quick_action_task] erro ao enviar resposta para content script:',
+                    chrome.runtime.lastError,
+                  );
+                }
+              },
+            );
+          }
+        })
+        .catch(err => {
+          console.error('[quick_action_task] erro fetch:', err);
+          if (tabId) {
+            chrome.tabs.sendMessage(tabId, {
+              type: 'quick_action_response',
+              content: 'Erro ao consultar o modelo: ' + err,
+            });
+          }
+        });
+    });
+    return;
+  }
   // Handle other message types if needed in the future
-  // Return false if response is not sent asynchronously
   // return false;
 });
 
@@ -85,6 +215,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 chrome.runtime.onConnect.addListener(port => {
   if (port.name === 'side-panel-connection') {
     currentPort = port;
+    globalThis.currentPort = port;
 
     port.onMessage.addListener(async message => {
       try {

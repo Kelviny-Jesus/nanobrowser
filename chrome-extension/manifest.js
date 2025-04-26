@@ -39,8 +39,8 @@ const manifest = withSidePanel({
   name: '__MSG_extensionName__',
   version: packageJson.version,
   description: '__MSG_extensionDescription__',
-  host_permissions: ['<all_urls>'],
-  permissions: ['storage', 'scripting', 'tabs', 'activeTab', 'debugger'],
+  host_permissions: ['<all_urls>', 'https://api.openai.com/*'],
+  permissions: ['storage', 'scripting', 'tabs', 'activeTab', 'debugger', 'background'],
   options_page: 'options/index.html',
   background: {
     service_worker: 'background.iife.js',
@@ -56,6 +56,16 @@ const manifest = withSidePanel({
     {
       matches: ['http://*/*', 'https://*/*', '<all_urls>'],
       js: ['content/index.iife.js'],
+    },
+    {
+      matches: ['http://*/*', 'https://*/*', '<all_urls>'],
+      js: ['floatingBall.js'],
+      run_at: 'document_idle',
+    },
+    {
+      matches: ['http://*/*', 'https://*/*', '<all_urls>'],
+      js: ['quickActions.js'],
+      run_at: 'document_idle',
     },
   ],
   web_accessible_resources: [

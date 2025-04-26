@@ -70,6 +70,32 @@ const SidePanel = () => {
     }
   }, []);
 
+  // Screenshot handler (agora depois de appendMessage)
+  useEffect(() => {
+    const handleScreenshotRequest = async () => {
+      try {
+        // Injeta o content script de screenshot na aba de site
+        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+        const tab = tabs.find(t => t.url && /^https?:\/\//.test(t.url));
+        if (!tab || !tab.id) throw new Error('No active site tab found');
+        await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          files: ['screenshotContent.js'],
+        });
+        // O resto do fluxo é feito pelo content script e background
+      } catch (err) {
+        appendMessage({
+          actor: Actors.SYSTEM,
+          content: 'Screenshot error: ' + (err instanceof Error ? err.message : String(err)),
+          timestamp: Date.now(),
+        });
+      }
+    };
+
+    window.addEventListener('screenshot:request', handleScreenshotRequest);
+    return () => window.removeEventListener('screenshot:request', handleScreenshotRequest);
+  }, [appendMessage]);
+
   const handleTaskState = useCallback(
     (event: AgentEvent) => {
       const { actor, state, timestamp, data } = event;
@@ -229,6 +255,46 @@ const SidePanel = () => {
         // Add type checking for message
         if (message && message.type === EventType.EXECUTION) {
           handleTaskState(message);
+        } else if (message && message.type === 'cropped_screenshot' && message.dataUrl) {
+          // Recebe imagem recortada e adiciona ao chat
+          appendMessage({
+            actor: Actors.USER,
+            content: '',
+            image: message.dataUrl,
+            timestamp: message.timestamp || Date.now(),
+          });
+        } else if (message && message.type === 'summarize_page') {
+          // Cria uma new task para o modelo resumir a página atual
+          const url = message.url || '';
+          const title = message.title || '';
+          const prompt = `Resuma o conteúdo da página atual.\nURL: ${url}\nTítulo: ${title}`;
+          handleSendMessage(prompt);
+        } else if (message && message.type === 'quick_action_task') {
+          // Cria uma new task para o modelo com o prompt da ação rápida
+          const prompt = message.prompt;
+          const tabId = message.tabId;
+          handleSendMessage(prompt);
+
+          // Intercepta a resposta do modelo e envia de volta ao content script
+          let lastMessageCount = messages.length;
+          let sent = false;
+          const interval = setInterval(() => {
+            if (messages.length > lastMessageCount) {
+              const last = messages[messages.length - 1];
+              // Considera resposta final se não for do usuário e não for "Showing progress..."
+              if (last && last.actor !== Actors.USER && last.content && last.content !== 'Showing progress...') {
+                if (tabId && !sent) {
+                  chrome.tabs.sendMessage(tabId, {
+                    type: 'quick_action_response',
+                    content: last.content,
+                  });
+                  sent = true;
+                }
+                clearInterval(interval);
+              }
+              lastMessageCount = messages.length;
+            }
+          }, 400);
         } else if (message && message.type === 'error') {
           // Handle error messages from service worker
           appendMessage({

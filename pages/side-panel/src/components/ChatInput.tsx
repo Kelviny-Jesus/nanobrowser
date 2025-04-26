@@ -102,7 +102,38 @@ export default function ChatInput({
           className={`flex items-center justify-between px-2 py-1.5 ${
             disabled ? (isDarkMode ? 'bg-slate-800' : 'bg-gray-100') : isDarkMode ? 'bg-slate-800' : 'bg-white'
           }`}>
-          <div className="flex gap-2 text-gray-500">{/* Icons can go here */}</div>
+          <div className="flex gap-2 text-gray-500">
+            {/* Screenshot button */}
+            <button
+              type="button"
+              title="Take screenshot"
+              aria-label="Take screenshot"
+              className="p-1 rounded hover:bg-sky-100 dark:hover:bg-sky-800"
+              onClick={() => {
+                if (typeof window !== 'undefined' && window.dispatchEvent) {
+                  window.dispatchEvent(new CustomEvent('screenshot:request'));
+                }
+              }}
+              disabled={disabled}>
+              {/* Tesoura customizada com estrela */}
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round">
+                <circle cx="6" cy="18" r="2" />
+                <circle cx="6" cy="6" r="2" />
+                <line x1="20" y1="4" x2="8.12" y2="15.88" />
+                <line x1="14.47" y1="14.48" x2="20" y2="20" />
+                <line x1="8.12" y1="8.12" x2="12" y2="12" />
+                <polygon points="19.5,2.5 20.5,5.5 23.5,6.5 20.5,7.5 19.5,10.5 18.5,7.5 15.5,6.5 18.5,5.5" />
+              </svg>
+            </button>
+          </div>
 
           {showStopButton ? (
             <button
