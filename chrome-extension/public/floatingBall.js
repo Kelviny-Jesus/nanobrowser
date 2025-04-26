@@ -130,7 +130,7 @@
   const btnScreenshot = document.createElement('button');
   btnScreenshot.className = 'btn';
   btnScreenshot.innerHTML = `
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="6" cy="18" r="2"/>
       <circle cx="6" cy="6" r="2"/>
       <line x1="20" y1="4" x2="8.12" y2="15.88"/>
@@ -144,7 +144,7 @@
   const btnSumarizar = document.createElement('button');
   btnSumarizar.className = 'btn';
   btnSumarizar.innerHTML = `
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <rect x="3" y="4" width="18" height="16" rx="2"/>
       <line x1="8" y1="9" x2="16" y2="9"/>
       <line x1="8" y1="13" x2="16" y2="13"/>
