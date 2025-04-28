@@ -1,6 +1,6 @@
-# Contributing to NanoBrowser
+# Contributing to NB1
 
-We deeply appreciate your interest in contributing to NanoBrowser! Every contribution helps make Nanobrowser more powerful and accessible for everyone.
+We deeply appreciate your interest in contributing to NB1! Every contribution helps make NB1 more powerful and accessible for everyone.
 
 ## Quick Start
 

@@ -48,12 +48,12 @@ function createOpenAIChatModel(
     args.configuration!.baseURL = providerConfig.baseUrl;
   }
 
-  // Always add custom headers for OpenRouter to identify Nanobrowser
+  // Always add custom headers for OpenRouter to identify NB1
   if (providerConfig.type === ProviderTypeEnum.OpenRouter) {
     args.configuration!.defaultHeaders = {
       ...(args.configuration!.defaultHeaders || {}),
-      'HTTP-Referer': 'https://nanobrowser.ai',
-      'X-Title': 'Nanobrowser',
+      'HTTP-Referer': 'https://NB1.ai',
+      'X-Title': 'NB1',
       ...(extraFetchOptions?.headers || {}),
     };
   } else if (extraFetchOptions?.headers) {
@@ -256,8 +256,8 @@ export function createChatModel(providerConfig: ProviderConfig, modelConfig: Mod
       console.log('[createChatModel] Calling createOpenAIChatModel for OpenRouter');
       return createOpenAIChatModel(providerConfig, modelConfig, {
         headers: {
-          'HTTP-Referer': 'nanobrowser-extension',
-          'X-Title': 'NanoBrowser Extension',
+          'HTTP-Referer': 'NB1-extension',
+          'X-Title': 'NB1 Extension',
         },
       });
     }

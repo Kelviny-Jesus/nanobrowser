@@ -32,7 +32,7 @@ const Options = () => {
 
   const handleTabClick = (tabId: TabTypes) => {
     if (tabId === 'help') {
-      window.location.href = 'https://nanobrowser.ai/docs';
+      window.location.href = 'https://NB1.ai/docs';
     } else {
       setActiveTab(tabId);
     }
