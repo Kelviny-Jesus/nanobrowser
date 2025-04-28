@@ -1,124 +1,122 @@
-// Floating action button com menu hover usando Shadow DOM para isolamento de estilos
+// Floating action button com menu hover usando CSS global (sem Shadow DOM)
 (function () {
   if (window.__floatingBallInjected) return;
   window.__floatingBallInjected = true;
 
-  // Criar o host para Shadow DOM
+  // Injetar CSS global para o floatingBall
+  const style = document.createElement('style');
+  style.textContent = `
+.wrapper {
+  position: relative;
+  width: 64px;
+  min-height: 120px;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  /* Permite que o wrapper cubra a área do menu para evitar sumiço ao mover o mouse */
+}
+
+.menu {
+  position: absolute;
+  bottom: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255,255,255,0.98);
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  padding: 10px 6px;
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 10;
+}
+
+.wrapper:hover .menu {
+  display: flex;
+  animation: fadeIn 0.2s forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.ball {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.2s;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
+
+.wrapper:hover .ball {
+  box-shadow: 0 4px 16px rgba(59,130,246,0.25);
+}
+
+.btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  border: none;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.btn:hover {
+  transform: scale(1.05);
+  background: #f5f5f5;
+}
+
+.btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+.tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: rgba(0,0,0,0.75);
+  color: white;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.btn:hover .tooltip {
+  opacity: 1;
+}
+  `;
+  document.head.appendChild(style);
+
+  // Criar o host do botão flutuante
   const hostElement = document.createElement('div');
   hostElement.style.position = 'fixed';
   hostElement.style.zIndex = '2147483647'; // Valor máximo de z-index
   hostElement.style.bottom = '32px';
   hostElement.style.right = '32px';
-
-  // Criar Shadow DOM com modo closed para melhor isolamento
-  const shadow = hostElement.attachShadow({ mode: 'closed' });
-
-  // Estilos isolados dentro do Shadow DOM
-  const style = document.createElement('style');
-  style.textContent = `
-    .wrapper {
-      position: relative;
-      width: 64px;
-      min-height: 120px;
-      height: auto;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-      /* Permite que o wrapper cubra a área do menu para evitar sumiço ao mover o mouse */
-    }
-    
-    .menu {
-      position: absolute;
-      bottom: 60px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      background: rgba(255,255,255,0.98);
-      border-radius: 16px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
-      padding: 10px 6px;
-      transition: opacity 0.2s, transform 0.2s;
-      z-index: 10;
-    }
-    
-    .wrapper:hover .menu {
-      display: flex;
-      animation: fadeIn 0.2s forwards;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateX(-50%) translateY(10px); }
-      to { opacity: 1; transform: translateX(-50%) translateY(0); }
-    }
-    
-    .ball {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: #fff;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
-      cursor: pointer;
-      transition: box-shadow 0.2s, transform 0.2s;
-      user-select: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 5;
-    }
-    
-    .wrapper:hover .ball {
-      box-shadow: 0 4px 16px rgba(59,130,246,0.25);
-    }
-    
-    .btn {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: #fff;
-      border: none;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.10);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.2s, background 0.2s;
-    }
-    
-    .btn:hover {
-      transform: scale(1.05);
-      background: #f5f5f5;
-    }
-    
-    .btn svg {
-      width: 22px;
-      height: 22px;
-    }
-    
-    .tooltip {
-      position: absolute;
-      bottom: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      margin-bottom: 8px;
-      padding: 6px 10px;
-      border-radius: 4px;
-      background: rgba(0,0,0,0.75);
-      color: white;
-      font-size: 12px;
-      white-space: nowrap;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-    
-    .btn:hover .tooltip {
-      opacity: 1;
-    }
-  `;
 
   // Wrapper para o botão e menu
   const wrapper = document.createElement('div');
@@ -176,9 +174,8 @@
   wrapper.appendChild(menu);
   wrapper.appendChild(ball);
 
-  // Adicionar elementos ao Shadow DOM
-  shadow.appendChild(style);
-  shadow.appendChild(wrapper);
+  // Adicionar wrapper ao host
+  hostElement.appendChild(wrapper);
 
   // Adicionar o host ao corpo do documento
   document.body.appendChild(hostElement);
@@ -230,19 +227,47 @@
   ball.addEventListener('click', e => {
     if (isDragging) return;
 
-    try {
-      // Abrir ou fechar o painel lateral
-      if (!ball._panelOpen) {
-        chrome.runtime.sendMessage({ type: 'open_side_panel' });
-        ball._panelOpen = true;
-      } else {
-        chrome.runtime.sendMessage({ type: 'close_side_panel' });
-        ball._panelOpen = false;
-      }
-    } catch (err) {
-      console.error('Erro ao comunicar com a extensão:', err);
+    if (!ball._panelOpen) {
+      chrome.runtime.sendMessage({ type: 'open_side_panel' });
+      ball._panelOpen = true;
+    } else {
+      chrome.runtime.sendMessage({ type: 'close_side_panel' });
+      ball._panelOpen = false;
     }
   });
+
+  // Funções para simular painel lateral no modo HTML puro
+  function showTestPanel() {
+    let panel = document.getElementById('side-panel-simulado');
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.id = 'side-panel-simulado';
+      panel.style.position = 'fixed';
+      panel.style.top = '0';
+      panel.style.right = '0';
+      panel.style.width = '320px';
+      panel.style.height = '100vh';
+      panel.style.background = '#fff';
+      panel.style.boxShadow = '-4px 0 24px rgba(59,130,246,0.12)';
+      panel.style.zIndex = '2147483647';
+      panel.style.display = 'flex';
+      panel.style.flexDirection = 'column';
+      panel.style.alignItems = 'center';
+      panel.style.justifyContent = 'center';
+      panel.innerHTML =
+        '<h2 style="color:#3B82F6;font-family:sans-serif;">Painel lateral simulado</h2><p style="color:#222;font-family:sans-serif;">Aqui seria aberto o painel lateral da extensão.</p>';
+      document.body.appendChild(panel);
+    } else {
+      panel.style.display = 'flex';
+    }
+  }
+
+  function hideTestPanel() {
+    const panel = document.getElementById('side-panel-simulado');
+    if (panel) {
+      panel.style.display = 'none';
+    }
+  }
 
   // Handler para o botão de screenshot
   btnScreenshot.addEventListener('click', e => {
