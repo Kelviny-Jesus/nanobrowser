@@ -18,12 +18,14 @@
   style.textContent = `
     .wrapper {
       position: relative;
-      width: 48px;
-      height: 48px;
+      width: 64px;
+      min-height: 120px;
+      height: auto;
       display: flex;
       flex-direction: column;
       align-items: center;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      /* Permite que o wrapper cubra a área do menu para evitar sumiço ao mover o mouse */
     }
     
     .menu {
